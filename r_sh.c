@@ -15,11 +15,11 @@ void execute_command(char *command) {
     }
 
     pid_t pid = fork();
-    if (pid == 0) { // Proceso hijo
+    if (pid == 0) { 
         execlp(command, command, NULL);
-        perror("execlp"); // Solo llega aquí si hay error
+        perror("execlp");
         exit(EXIT_FAILURE);
-    } else if (pid > 0) { // Proceso padre
+    } else if (pid > 0) {
         if (!background) {
             waitpid(pid, NULL, 0);
         }
@@ -30,13 +30,12 @@ void execute_command(char *command) {
 
 void shutdown_system() {
     pid_t pid = fork();
-    if (pid == 0) { // Proceso hijo
-        execlp("killall", "killall", "getty", "init", "sh", NULL);
-        perror("execlp"); // Solo llega aquí si hay error
+    if (pid == 0) {
+        execlp("shutdown", "shutdown", "-h", "now", NULL);
+        perror("execlp");
         exit(EXIT_FAILURE);
-    } else if (pid > 0) { // Proceso padre
+    } else if (pid > 0) { 
         waitpid(pid, NULL, 0);
-        exit(0);
     } else {
         perror("fork");
     }
