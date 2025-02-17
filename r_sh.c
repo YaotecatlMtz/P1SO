@@ -6,11 +6,11 @@
 #include <sys/wait.h>
 #include <signal.h>
 
-// Function to shut down the system properly
+// Function to shut down all processes
 void shutdown_system() {
     printf("System shutting down...\n");
 
-    // Kill init first so it stops restarting processes
+    // Kill init first so it stops restarting getty
     pid_t pid = fork();
     if (pid == 0) {
         execlp("pkill", "pkill", "-9", "init", NULL);
@@ -19,23 +19,33 @@ void shutdown_system() {
     }
     waitpid(pid, NULL, 0);
 
-    // Kill remaining processes
-    const char *processes_to_kill[] = {"sh", "getty"};
-    for (int i = 0; i < 2; i++) {
-        pid = fork();
-        if (pid == 0) {
-            execlp("pkill", "pkill", "-9", processes_to_kill[i], NULL);
-            perror("Error terminating process");
-            exit(EXIT_FAILURE);
-        }
-        waitpid(pid, NULL, 0);
+    // Kill all remaining processes (sh, getty, etc.)
+    pid = fork();
+    if (pid == 0) {
+        execlp("pkill", "pkill", "-9", "sh", NULL);
+        perror("Error terminating sh");
+        exit(EXIT_FAILURE);
     }
+    waitpid(pid, NULL, 0);
+
+    pid = fork();
+    if (pid == 0) {
+        execlp("pkill", "pkill", "-9", "getty", NULL);
+        perror("Error terminating getty");
+        exit(EXIT_FAILURE);
+    }
+    waitpid(pid, NULL, 0);
+
+    // Kill **all** remaining processes owned by the shell
+    kill(-1, SIGTERM);
+    sleep(1);
+    kill(-1, SIGKILL);
 
     printf("Shutdown complete. All processes terminated.\n");
     exit(0);
 }
 
-// Function to execute commands
+// Function to execute normal commands
 void execute_command(char *command) {
     if (strcmp(command, "exit") == 0) {
         printf("Exiting shell...\n");
@@ -76,9 +86,6 @@ int main() {
         // Execute the command
         execute_command(command);
     }
-
-    return 0;
-}
 
     return 0;
 }
