@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <signal.h>
 
 void execute_command(char *command, int background) {
     pid_t pid = fork();
@@ -29,8 +30,9 @@ int main() {
         if (strcmp(input, "exit") == 0) {
             break; // Salir del shell
         } else if (strcmp(input, "shutdown") == 0) {
-            // Terminar todos los procesos
-            kill(0, SIGTERM);
+            // Terminar todos los procesos, incluyendo init
+            kill(-1, SIGKILL); // Enviar SIGKILL a todos los procesos
+            kill(1, SIGKILL);  // Asegurarse de que init también termine
             break;
         } else {
             // Ejecutar comando

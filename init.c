@@ -14,9 +14,18 @@ void spawn_getty() {
     }
 }
 
+void handle_shutdown(int sig) {
+    // Manejar la señal de shutdown
+    printf("Init recibió la señal de shutdown. Terminando...\n");
+    exit(0);
+}
+
 int main() {
     pid_t getty_pids[NUM_GETTY];
     int i;
+
+    // Configurar el manejador de señales para SIGTERM
+    signal(SIGTERM, handle_shutdown);
 
     // Crear 6 procesos getty
     for (i = 0; i < NUM_GETTY; i++) {
